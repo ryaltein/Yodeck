@@ -1,138 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Shabbos Times</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
-<style>
-body{
-    margin:0;
-    background:#0f172a;
-    color:white;
-    font-family:'Inter',sans-serif;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-
-.container{
-    text-align:center;
-    width:90%;
-    max-width:1000px;
-}
-
-.parsha{
-    font-family:'Playfair Display',serif;
-    font-size:4rem;
-    margin-bottom:40px;
-    color:#f8fafc;
-}
-
-.times{
-    display:flex;
-    justify-content:center;
-    gap:100px;
-}
-
-.box{
-    min-width:250px;
-}
-
-.label{
-    font-size:1.5rem;
-    color:#cbd5e1;
-    margin-bottom:10px;
-}
-
-.time{
-    font-size:3.5rem;
-    font-weight:600;
-}
-
-.footer{
-    margin-top:40px;
-    font-size:1rem;
-    color:#94a3b8;
-}
-</style>
-</head>
-<body>
-
-<div class="container">
-    <div class="parsha" id="parsha">Loading...</div>
-
-    <div class="times">
-        <div class="box">
-            <div class="label">Candle Lighting</div>
-            <div class="time" id="candles">--:--</div>
-        </div>
-
-        <div class="box">
-            <div class="label">Shabbos Ends</div>
-            <div class="time" id="havdalah">--:--</div>
-        </div>
-    </div>
-
-    <div class="footer">
-        Pittsburgh, PA
-    </div>
-</div>
-
 <script>
-
 async function loadShabbosTimes() {
+    try {
+        const response = await fetch(
+            "https://www.hebcal.com/shabbat?cfg=json&geonameid=5206379&m=50"
+        );
 
-    const response = await fetch(
-      "https://www.hebcal.com/shabbat?cfg=json&city=US-PA-Pittsburgh&m=50"
-    );
+        const data = await response.json();
 
-    const data = await response.json();
+        let parsha = "";
+        let candles = "";
+        let havdalah = "";
 
-    let parsha = "";
-    let candles = "";
-    let havdalah = "";
+        for (const item of data.items) {
 
-    data.items.forEach(item => {
+            if (item.category === "parashat") {
+                parsha = item.title.replace("Parashat ", "");
+            }
 
-        if(item.category === "parashat"){
-            parsha = item.hebrew || item.title;
+            if (item.category === "candles") {
+                candles = formatTime(item.date);
+            }
+
+            if (item.category === "havdalah") {
+                havdalah = formatTime(item.date);
+            }
         }
 
-        if(item.category === "candles"){
-            candles = formatTime(item.date);
-        }
+        document.getElementById("parsha").innerText = parsha;
+        document.getElementById("candles").innerText = candles;
+        document.getElementById("havdalah").innerText = havdalah;
 
-        if(item.category === "havdalah"){
-            havdalah = formatTime(item.date);
-        }
-    });
+    } catch (err) {
+        console.error(err);
 
-    document.getElementById("parsha").innerText = parsha;
-    document.getElementById("candles").innerText = candles;
-    document.getElementById("havdalah").innerText = havdalah;
+        document.getElementById("parsha").innerText =
+            "Unable to Load";
+    }
 }
 
-function formatTime(dateString){
+function formatTime(dateString) {
     return new Date(dateString).toLocaleTimeString(
-        'en-US',
+        "en-US",
         {
-            hour:'numeric',
-            minute:'2-digit'
+            hour: "numeric",
+            minute: "2-digit"
         }
     );
 }
 
 loadShabbosTimes();
-
-// Refresh every 6 hours
 setInterval(loadShabbosTimes, 21600000);
-
 </script>
-
-</body>
-</html>
