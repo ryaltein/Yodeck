@@ -1,44 +1,59 @@
 <script>
 async function loadShabbosTimes() {
     try {
+
         const response = await fetch(
             "https://www.hebcal.com/shabbat?cfg=json&geonameid=5206379&m=50"
         );
 
         const data = await response.json();
 
-        let parsha = "";
-        let candles = "";
-        let havdalah = "";
+        console.log("Hebcal data:", data);
 
-        for (const item of data.items) {
+        const candlesItem = data.items.find(
+            item => item.category === "candles"
+        );
 
-            if (item.category === "parashat") {
-                parsha = item.title.replace("Parashat ", "");
-            }
+        const parshaItem = data.items.find(
+            item => item.category === "parashat"
+        );
 
-            if (item.category === "candles") {
-                candles = formatTime(item.date);
-            }
+        const havdalahItem = data.items.find(
+            item => item.category === "havdalah"
+        );
 
-            if (item.category === "havdalah") {
-                havdalah = formatTime(item.date);
-            }
-        }
+        document.getElementById("parsha").innerText =
+            parshaItem
+                ? parshaItem.title.replace("Parashat ", "")
+                : "Parsha Unavailable";
 
-        document.getElementById("parsha").innerText = parsha;
-        document.getElementById("candles").innerText = candles;
-        document.getElementById("havdalah").innerText = havdalah;
+        document.getElementById("candles").innerText =
+            candlesItem
+                ? formatTime(candlesItem.date)
+                : "--:--";
+
+        document.getElementById("havdalah").innerText =
+            havdalahItem
+                ? formatTime(havdalahItem.date)
+                : "--:--";
 
     } catch (err) {
+
         console.error(err);
 
         document.getElementById("parsha").innerText =
             "Unable to Load";
+
+        document.getElementById("candles").innerText =
+            "--:--";
+
+        document.getElementById("havdalah").innerText =
+            "--:--";
     }
 }
 
 function formatTime(dateString) {
+
     return new Date(dateString).toLocaleTimeString(
         "en-US",
         {
